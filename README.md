@@ -1,108 +1,153 @@
 # AI Employee Operations Assistant
 
-An AI-powered employee assistance system that answers questions about company policies and employee information using PDF document search, semantic retrieval, and a SQLite database.
+A Python-based employee assistant that answers questions about company policies using PDF document search and retrieves employee information from a SQLite database.
 
-The project combines **FastAPI, Retrieval-Augmented Generation (RAG)-style document retrieval, Sentence Transformers, FAISS, and SQLite** to make company information easier to access through a simple web interface.
+Built with **FastAPI, Sentence Transformers, FAISS, PyPDF, and SQLite**, this project combines semantic document search with database-backed employee lookups through a simple web interface.
 
-## Overview
+## About the Project
 
-Employees often need quick answers about company policies, leave, departments, managers, and other workplace information. Finding these details manually in lengthy documents can take time.
+Employees often need to find information about workplace policies, remote work, leave rules, and other company procedures. Searching through lengthy documents manually can take time.
 
-The AI Employee Operations Assistant helps solve this problem by allowing users to ask questions in natural language. The application searches the most recently modified PDF in the documents folder, retrieves relevant text, and displays a concise answer with its source filename.
+The AI Employee Operations Assistant makes this process easier by allowing users to ask questions in natural language.
 
-It also retrieves employee-specific information from a SQLite database.
+The application searches the most recently modified PDF, retrieves relevant text, and returns a concise answer with the source filename. It also supports employee information queries, such as checking leave balances, departments, and managers using a SQLite database.
 
-## Key Features
+The project demonstrates practical use of document processing, text embeddings, vector similarity search, API development, and database integration.
 
-- **PDF upload:** Upload a company policy or handbook PDF through the web interface.
-- **Latest-PDF selection:** Searches the PDF with the most recent modification time in the documents folder.
-- **Semantic search:** Uses Sentence Transformers to represent document text and questions as numerical embeddings.
-- **Vector similarity search:** Uses FAISS to retrieve text chunks that are semantically similar to a question.
-- **Source references:** Displays the filename of the PDF used for an answer.
-- **Concise answers:** Selects a relevant sentence from retrieved text and avoids displaying duplicate sentences.
-- **Employee information lookup:** Retrieves employee leave balances, departments, and manager details from SQLite.
-- **REST API:** Uses FastAPI to handle questions and other application requests.
-- **Web interface:** Provides a simple interface for asking questions and viewing responses.
+## Features
+
+- **PDF document upload:** Upload a PDF through the web interface.
+- **Latest PDF selection:** Selects the PDF with the most recent modification time for document search.
+- **PDF text extraction:** Extracts readable text from PDF pages using PyPDF.
+- **Text chunking:** Splits document text into smaller, overlapping chunks for retrieval.
+- **Semantic search:** Uses Sentence Transformers to represent questions and document chunks as embeddings.
+- **Vector search:** Uses FAISS to find relevant document chunks based on vector similarity.
+- **Concise answers:** Selects a relevant sentence from the retrieved text and avoids repeated sentences.
+- **Source citations:** Displays the PDF filename used to support the answer.
+- **Employee information lookup:** Retrieves leave balances, departments, and manager information from SQLite.
+- **FastAPI backend:** Handles user questions and PDF upload requests.
+- **Interactive web interface:** Allows users to submit questions and view answers in their browser.
 
 ## Technology Stack
 
 | Technology | Purpose |
 |---|---|
-| Python | Core application logic |
-| FastAPI | Backend API and web application |
-| Sentence Transformers | Converts text and questions into embeddings |
-| `all-MiniLM-L6-v2` | Embedding model used for semantic search |
-| FAISS | Finds similar document embeddings |
-| PyPDF | Extracts text from PDF documents |
-| SQLite | Stores employee information |
-| HTML, CSS, JavaScript | Web interface |
-| Pydantic | Validates API request data |
-| Uvicorn | Runs the FastAPI application |
-
-## How It Works
-
-The application follows two main workflows: company-document question answering and employee information lookup.
-
-### 1. Company document question answering
-
-1. The user uploads a PDF through the web interface.
-2. The PDF is saved in the `documents` folder.
-3. The document-loading function selects the PDF with the latest modification time.
-4. PyPDF extracts text from its pages.
-5. The extracted text is split into smaller, overlapping chunks.
-6. Sentence Transformers converts the chunks into numerical embeddings.
-7. FAISS stores the embeddings in a vector index.
-8. When a user asks a question, the question is converted into an embedding.
-9. FAISS retrieves the closest matching chunks.
-10. The application selects a relevant sentence and displays it with the source filename.
-
-### 2. Employee information lookup
-
-For supported employee questions, the application queries the SQLite database.
-
-Examples include:
-
-- How many leave days do I have?
-- Which department do I work in?
-- Who is my manager?
-
-The application uses the employee ID supplied with the request to retrieve the corresponding record.
+| Python | Application logic |
+| FastAPI | Backend API and request handling |
+| Sentence Transformers | Text embedding generation |
+| `all-MiniLM-L6-v2` | Embedding model |
+| FAISS | Vector similarity search |
+| PyPDF | PDF text extraction |
+| SQLite | Employee data storage |
+| Pydantic | Request data validation |
+| HTML | Web page structure |
+| CSS | Web page styling |
+| JavaScript | Frontend interactions |
+| Uvicorn | Local application server |
 
 ## System Architecture
 
 ```text
-                  User
-                   |
-                   v
+                 User
+                  |
+                  v
           Web Interface
-       (HTML, CSS, JavaScript)
-                   |
-                   v
-             FastAPI
-                   |
-          +--------+--------+
-          |                 |
-          v                 v
-    Policy Questions   Employee Questions
-          |                 |
-          v                 v
-    PDF Text Search     SQLite Database
+        (HTML, CSS, JS)
+                  |
+                  v
+               FastAPI
+                  |
+          +-------+-------+
+          |               |
+          v               v
+   Policy Questions   Employee Queries
+          |               |
+          v               v
+      PDF Search       SQLite DB
           |
           v
-   Sentence Transformer
+   PDF Text Extraction
           |
           v
-        FAISS
+      Text Chunking
+          |
+          v
+ Sentence Transformers
+          |
+          v
+         FAISS
           |
           v
    Relevant Text Chunks
           |
           v
-  Concise Answer + Source
-          |
-          v
-          User
+   Concise Answer
+   + Source Filename
 ```
+
+## How It Works
+
+### 1. PDF upload and processing
+
+1. The user uploads a PDF through the web interface.
+2. The application saves the uploaded document in the `documents` folder.
+3. The document-loading function selects the PDF with the latest modification time.
+4. PyPDF extracts text from the PDF pages.
+5. The extracted text is split into overlapping sentence chunks.
+6. Sentence Transformers converts the chunks into numerical embeddings.
+7. FAISS creates a vector index for similarity search.
+
+### 2. Question answering
+
+1. The user enters a question.
+2. The application converts the question into an embedding.
+3. FAISS searches for the closest document chunks.
+4. The application filters results using a configured distance threshold.
+5. Relevant sentences are ranked using keyword overlap and semantic similarity information.
+6. The application returns a concise answer with the source PDF filename.
+
+### 3. Employee information retrieval
+
+For supported employee questions, the application queries the SQLite database using the supplied employee ID.
+
+Examples include:
+
+- Checking remaining leave days.
+- Finding the employee's department.
+- Identifying the employee's manager.
+
+These employee lookups use database queries rather than PDF semantic search.
+
+## Example Questions
+
+### Company policy questions
+
+- How many remote-work days are allowed per week?
+- What are the working hours?
+- What is the annual leave policy?
+- What security rules apply when working remotely?
+
+### Employee information questions
+
+- How many leave days do I have?
+- Which department do I work in?
+- Who is my manager?
+
+Answers depend on the contents of the selected PDF and the employee records available in the database.
+
+## Example Output
+
+**Question:**
+
+`How many remote-work days are allowed per week?`
+
+**Example answer:**
+
+> Employees may request up to two remote-work days per week, subject to manager approval and team requirements.
+
+**Source:** `sample_company_handbook_for_testing.pdf`
+
+This example comes from the sample handbook used during testing. Answers will vary depending on the uploaded document.
 
 ## Project Structure
 
@@ -110,66 +155,62 @@ The application uses the employee ID supplied with the request to retrieve the c
 AI-Employee-Operations-Assistant/
 │
 ├── api.py
-│   └── FastAPI application, web interface,
-│       question handling, and employee tools
-│
 ├── pdf_vector_search.py
-│   └── PDF extraction, text chunking,
-│       embedding creation, and semantic search
-│
 ├── employee_database.py
-│   └── Employee database setup and sample data
-│
 ├── employee_rag_agent.py
-│   └── Additional employee/RAG logic
-│
-├── documents/
-│   └── PDF handbooks and company policies
-│
 ├── requirements.txt
-│   └── Python dependencies
-│
+├── documents/
+│   └── Sample PDF documents
 └── README.md
-    └── Project documentation
 ```
 
-*The structure above describes the project files; the exact responsibilities of individual modules may vary with your current implementation.*
+### Main Files
+
+**`api.py`**
+
+Contains the FastAPI application, web interface, employee database lookup functions, question handling, and API routes.
+
+**`pdf_vector_search.py`**
+
+Handles PDF text extraction, sentence chunking, embedding generation, FAISS vector indexing, semantic retrieval, and sentence ranking.
+
+**`employee_database.py`**
+
+Contains the employee database setup code and related database functionality.
+
+**`employee_rag_agent.py`**
+
+Contains additional employee/RAG-related logic in the project.
+
+**`requirements.txt`**
+
+Lists the Python packages required to run the application.
+
+**`documents/`**
+
+Stores PDF documents used by the application.
 
 ## Installation and Setup
 
-Follow these steps to run the project locally.
-
 ### Prerequisites
 
-Install the following:
+- Python installed on your computer.
+- Visual Studio Code or another code editor.
+- An internet connection for the initial embedding-model download, if the model is not already available locally.
 
-- Python 3.10 or a compatible version for your dependencies
-- Git (optional, for cloning the repository)
-- A code editor such as Visual Studio Code
+### Step 1: Open the project
 
-### Step 1: Clone the repository
-
-Replace `YOUR-USERNAME` and `YOUR-REPOSITORY` with your GitHub details.
-
-```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git
-```
-
-Open the project folder:
-
-```bash
-cd YOUR-REPOSITORY
-```
-
-If you already have the project on your computer, simply open its folder in VS Code.
+Open the project folder in Visual Studio Code.
 
 ### Step 2: Create a virtual environment
+
+Run this command in the terminal:
 
 ```bash
 python -m venv venv
 ```
 
-Activate it on Windows:
+Activate the environment on Windows:
 
 ```bash
 venv\Scripts\activate
@@ -177,175 +218,87 @@ venv\Scripts\activate
 
 ### Step 3: Install dependencies
 
+Run:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-If your `requirements.txt` is incomplete, make sure it includes the packages used by your implementation, such as:
+The project uses packages including FastAPI, Uvicorn, Sentence Transformers, FAISS, PyPDF, NumPy, Pydantic, and `python-multipart` for file uploads.
 
-```text
-fastapi
-uvicorn
-python-multipart
-pydantic
-sentence-transformers
-faiss-cpu
-pypdf
-numpy
-```
+### Step 4: Start the application
 
-Install any missing packages in your activated virtual environment.
-
-### Step 4: Prepare the documents folder
-
-Make sure a `documents` folder exists in the project directory. Upload a text-based PDF containing company policies or handbook information.
-
-For testing, use fictional or non-sensitive documents. Scanned PDFs may require OCR if they do not contain extractable text.
-
-### Step 5: Start the application
-
-Run:
+Run this command from the project directory:
 
 ```bash
 uvicorn api:app --reload
 ```
 
-Open this address in your browser:
+### Step 5: Open the application
 
-```text
-http://127.0.0.1:8000
-```
+Open the following address in your browser:
 
-You can also access the FastAPI interactive documentation at:
+**http://127.0.0.1:8000**
 
-```text
-http://127.0.0.1:8000/docs
-```
+The FastAPI interactive documentation is available at:
 
-The first run may take longer because the embedding model may need to be downloaded. An internet connection may be required for the initial model download.
+**http://127.0.0.1:8000/docs**
 
-## Example Usage
+The application loads the embedding model and builds its document index when it starts. The first startup may take longer.
 
-### Example 1: Remote-work policy
+## API Endpoints
 
-**Question**
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/` | Opens the web interface |
+| POST | `/ask` | Processes an employee or company-policy question |
+| POST | `/upload-pdf` | Uploads a PDF and refreshes the document search system |
 
-```text
-How many remote-work days are allowed per week?
-```
-
-**Example answer**
-
-```text
-Employees may request up to two remote-work days per week,
-subject to manager approval and team requirements.
-
-Source: sample_company_handbook_for_testing.pdf
-```
-
-The answer depends on the contents of the PDF being searched.
-
-### Example 2: Employee leave balance
-
-**Question**
-
-```text
-How many leave days do I have?
-```
-
-The application checks the employee ID and retrieves the leave balance from SQLite.
-
-### Example 3: Employee department
-
-**Question**
-
-```text
-Which department do I work in?
-```
-
-The application retrieves the department associated with the employee ID.
-
-## API Overview
-
-The FastAPI application provides a web interface and request endpoints.
-
-| Endpoint | Purpose |
-|---|---|
-| `GET /` | Opens the web interface |
-| `POST /ask` | Processes a question using the employee and document-search logic |
-| `POST /upload-pdf` | Uploads a PDF and rebuilds the document search index, if enabled in the current application |
-
-To inspect the available API endpoints and request schemas, run the application and open `/docs`.
-
-## Configuration
-
-The document-search module uses settings such as:
-
-| Setting | Purpose |
-|---|---|
-| `CHUNK_SIZE = 3` | Number of sentences in each text chunk |
-| `OVERLAP = 1` | Number of overlapping sentences between adjacent chunks |
-| `TOP_K = 5` | Maximum number of nearest chunks requested from FAISS |
-| `DISTANCE_THRESHOLD = 1.15` | Maximum accepted FAISS distance in the current search implementation |
-| `all-MiniLM-L6-v2` | Embedding model used to represent text |
-
-The distance threshold depends on the embedding and distance metric. It should be evaluated against representative questions and documents rather than treated as a universal relevance score.
+The `/ask` endpoint accepts an employee ID and a question. The `/upload-pdf` endpoint is used by the PDF upload interface.
 
 ## Current Limitations
 
-This project is a learning and portfolio project. It has some limitations:
-
-- **Answer accuracy:** The application selects relevant text; semantic similarity does not guarantee that the selected sentence fully answers the question.
-- **Latest-PDF behavior:** Only the PDF with the latest modification time is selected. This is not the same as maintaining a searchable collection of all uploaded documents.
-- **PDF extraction:** Scanned PDFs and complicated layouts may not produce usable text.
-- **Employee authentication:** The current employee ID input should not be treated as secure authentication.
-- **Data privacy:** The application should not be used with confidential employee records without appropriate access controls and security measures.
-- **LLM generation:** The current answer-selection logic is based on retrieved text and sentence ranking; it should not be described as a full generative-LLM answer system unless one is actually integrated.
-- **Production readiness:** Authentication, authorization, upload validation, error handling, logging, testing, and deployment security would need further development.
+- Only the PDF with the most recent modification time is selected for document search.
+- Answers depend on the quality of the extracted PDF text and the relevance of retrieved sentences.
+- Semantic similarity does not guarantee that every answer is complete or correct.
+- Scanned PDFs without extractable text may not work without OCR.
+- Employee ID input is not a substitute for authentication or authorization.
+- The current sentence-selection logic does not use a generative large language model to write answers.
+- The application needs additional security, testing, and deployment work before it should be used with sensitive employee data in production.
 
 ## Future Improvements
 
-Potential improvements include:
+Possible future enhancements include:
 
-- Search across multiple documents with document-level filters.
-- Improve answer relevance and handling of questions not covered by the documents.
-- Add automated tests for retrieval, employee lookups, and upload handling.
-- Add authentication and role-based access control.
-- Improve PDF validation and error handling.
-- Add a conversation history and feedback mechanism.
-- Add a configurable local language model for grounded answer generation.
-- Containerize the application with Docker.
-- Deploy the application to a secure hosting environment.
+- Supporting search across multiple PDFs.
+- Improving answer relevance and handling unsupported questions.
+- Adding automated tests for the API, document retrieval, and database functions.
+- Implementing secure authentication and role-based access control.
+- Improving PDF validation and error handling.
+- Adding conversation history and user feedback.
+- Integrating a local language model for grounded answer generation.
+- Containerizing the application with Docker.
+- Deploying the application to a secure hosting environment.
 
-These are planned improvements, not features claimed to be complete.
+These are potential improvements, not features currently claimed as completed.
 
-## Learning Outcomes
+## Key Learning Outcomes
 
-Building this project provides practical experience with:
+This project provides hands-on experience with:
 
-- Building REST APIs with FastAPI.
-- Extracting and processing PDF text.
-- Text chunking and embedding generation.
-- Semantic similarity search using FAISS.
-- Integrating a relational database with Python.
-- Connecting backend logic to a web interface.
-- Displaying source references for retrieved information.
+- Developing APIs using FastAPI.
+- Extracting and processing PDF documents.
+- Generating text embeddings.
+- Implementing semantic search using FAISS.
+- Integrating SQLite with Python.
+- Connecting a frontend to backend API endpoints.
+- Retrieving relevant document passages and displaying source filenames.
 - Understanding the limitations of retrieval-based question answering.
-
-## Contributing
-
-Suggestions and improvements are welcome. To contribute:
-
-1. Fork the repository.
-2. Create a new branch.
-3. Make your changes.
-4. Test the updated application.
-5. Submit a pull request describing the changes.
 
 ## License
 
-Choose a license before publishing the project for reuse. For example, an MIT License is a common option for open-source projects, but only add it if you want to release your code under those terms.
+No license has been specified for this project yet. Add a license file if you decide to publish the code under an open-source license.
 
 ---
 
-**Built with Python, FastAPI, FAISS, Sentence Transformers, and SQLite.**
+**Built using Python, FastAPI, Sentence Transformers, FAISS, PyPDF, and SQLite.**
